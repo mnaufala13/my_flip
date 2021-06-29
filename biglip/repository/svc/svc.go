@@ -3,33 +3,34 @@ package svc
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
-	"errors"
+	"flip/biglip/repository/postgres"
 	"flip/domain"
+	"flip/models"
 	"fmt"
+	"github.com/pkg/errors"
+	"github.com/volatiletech/null/v8"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 )
 
-type DisbursePayload struct {
-	BankCode      string
-	AccountNumber string
-	Amount        int
-	Remark        string
-}
-
-type BigFlipRepository interface {
-	Disburse(ctx context.Context, payload DisbursePayload) (*domain.FlipDisburse, error)
+type BigFlipSvcRepository interface {
+	Disburse(ctx context.Context, withdrawalId string, payload domain.DisbursePayload) (*domain.FlipTransaction, error)
 	Status(ctx context.Context, transactionId int) (*domain.FlipTransaction, error)
 }
 
 const baseUrl = "https://nextar.flip.id"
 
 type flipper struct {
-	client *http.Client
+	client   *http.Client
+	db       *sql.DB
+	psqlFlip postgres.BigFlipPsqlRepository
 }
 
 func NewFlipper(c *http.Client) *flipper {
@@ -46,10 +47,74 @@ func buildRequest(method, url string, body io.Reader) (*http.Request, error) {
 	return request, nil
 }
 
-func (f *flipper) Disburse(ctx context.Context, payload DisbursePayload) (*domain.FlipDisburse, error) {
+// Disburse call the bigflip api and then log the response
+func (f *flipper) Disburse(ctx context.Context, withdrawalId string, payload domain.DisbursePayload) (*domain.FlipTransaction, error) {
+	tx, err := f.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error begin trx at disburse")
+	}
+	flipTrx, err := f.callDisburse(payload)
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		_, err := f.log(ctx, tx, withdrawalId, *flipTrx)
+		log.Println(err)
+	}()
+	return flipTrx, nil
+}
+
+// Status to get status bigflip transaction
+func (f *flipper) Status(ctx context.Context, transactionId int) (*domain.FlipTransaction, error) {
 	const endpoint = baseUrl + "/disburse"
 
-	disburse := &domain.FlipDisburse{}
+	flipTrx := &domain.FlipTransaction{}
+
+	request, err := buildRequest("GET", fmt.Sprintf("%s/%d", endpoint, transactionId), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := f.client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	err = json.NewDecoder(response.Body).Decode(flipTrx)
+	if err != nil {
+		return nil, err
+	}
+
+	return flipTrx, nil
+}
+
+func (f *flipper) log(ctx context.Context, exec boil.ContextExecutor, withdrawalId string, ft domain.FlipTransaction) (*models.BigflipLog, error) {
+	lg := models.BigflipLog{
+		TransactionID:   ft.Id,
+		Amount:          ft.Amount,
+		Status:          ft.Status,
+		TRXTimestamp:    null.TimeFrom(ft.Timestamp),
+		BankCode:        ft.BankCode,
+		AccountNumber:   ft.AccountNumber,
+		BeneficiaryName: ft.BeneficiaryName,
+		Remark:          ft.Remark,
+		Receipt:         ft.Receipt,
+		TimeServed:      null.TimeFrom(ft.TimeServed),
+		Fee:             ft.Fee,
+		WithdrawalID:    withdrawalId,
+	}
+	_, err := f.psqlFlip.Insert(ctx, exec, lg)
+	if err != nil {
+		return nil, err
+	}
+	return &lg, nil
+}
+
+func (f flipper) callDisburse(payload domain.DisbursePayload) (*domain.FlipTransaction, error) {
+	const endpoint = baseUrl + "/disburse"
+
+	disburse := &domain.FlipTransaction{}
 
 	var param = url.Values{}
 	param.Set("bank_code", payload.BankCode)
@@ -81,28 +146,4 @@ func (f *flipper) Disburse(ctx context.Context, payload DisbursePayload) (*domai
 	}
 
 	return disburse, nil
-}
-
-func (f *flipper) Status(ctx context.Context, transactionId int) (*domain.FlipTransaction, error) {
-	const endpoint = baseUrl + "/disburse"
-
-	flipTrx := &domain.FlipTransaction{}
-
-	request, err := buildRequest("GET", fmt.Sprintf("%s/%d", endpoint, transactionId), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	response, err := f.client.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	err = json.NewDecoder(response.Body).Decode(flipTrx)
-	if err != nil {
-		return nil, err
-	}
-
-	return flipTrx, nil
 }

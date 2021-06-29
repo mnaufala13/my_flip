@@ -2,6 +2,7 @@ package svc
 
 import (
 	"context"
+	"flip/domain"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -20,13 +21,13 @@ func Test_buildRequest(t *testing.T) {
 func TestFlipper_Disburse(t *testing.T) {
 	c := &http.Client{}
 	flipper := NewFlipper(c)
-	payload := DisbursePayload{
+	payload := domain.DisbursePayload{
 		BankCode:      "bni",
 		AccountNumber: "110011212",
 		Amount:        1000,
 		Remark:        "this is remark",
 	}
-	disburse, err := flipper.Disburse(context.Background(), payload)
+	disburse, err := flipper.Disburse(context.Background(), "", payload)
 	assert.NoError(t, err)
 	assert.EqualValues(t, payload.BankCode, disburse.BankCode)
 	assert.EqualValues(t, payload.AccountNumber, disburse.AccountNumber)

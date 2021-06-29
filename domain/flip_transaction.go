@@ -1,15 +1,24 @@
 package domain
 
+import "time"
+
 type FlipTransaction struct {
-	Id              int64  `json:"id"`
-	Amount          int    `json:"amount"`
-	Status          string `json:"status"`
-	Timestamp       string `json:"timestamp"`
-	BankCode        string `json:"bank_code"`
-	AccountNumber   string `json:"account_number"`
-	BeneficiaryName string `json:"beneficiary_name"`
-	Remark          string `json:"remark"`
-	Receipt         string `json:"receipt"`
-	TimeServed      string `json:"time_served"`
-	Fee             int    `json:"fee"`
+	Id              int64     `json:"id"`
+	Amount          int       `json:"amount"`
+	Status          string    `json:"status"`
+	Timestamp       time.Time `json:"timestamp"`
+	BankCode        string    `json:"bank_code"`
+	AccountNumber   string    `json:"account_number"`
+	BeneficiaryName string    `json:"beneficiary_name"`
+	Remark          string    `json:"remark"`
+	Receipt         string    `json:"receipt"`
+	TimeServed      time.Time `json:"time_served"`
+	Fee             int       `json:"fee"`
+}
+
+type DisbursePayload struct {
+	BankCode      string
+	AccountNumber string
+	Amount        int
+	Remark        string
 }
