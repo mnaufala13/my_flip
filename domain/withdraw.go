@@ -1,6 +1,8 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
 type WithdrawModel struct {
 	Id            string
@@ -16,6 +18,23 @@ type WithdrawRequest struct {
 	BankCode      string
 	Remark        string
 	Amount        int
+}
+
+func (r WithdrawRequest) Validate() []string {
+	errs := []string{}
+	if r.AccountNumber == "" {
+		errs = append(errs, "account number can't empty")
+	}
+	if r.BankCode == "" {
+		errs = append(errs, "bank code can't empty")
+	}
+	if r.Remark == "" {
+		errs = append(errs, "remark can't empty")
+	}
+	if r.Amount == 0 {
+		errs = append(errs, "amount can't zero")
+	}
+	return errs
 }
 
 type History struct {

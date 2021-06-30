@@ -7,16 +7,28 @@ import (
 )
 
 func (a *App) Withdraw(c *fiber.Ctx) error {
-	amount, err := strconv.Atoi(c.FormValue("amount"))
-	if err != nil {
-		return err
+	var amount int
+	var err error
+	if c.FormValue("amount") != "" {
+		amount, err = strconv.Atoi(c.FormValue("amount"))
+		if err != nil {
+			return err
+		}
 	}
-	_, err = a.Usecase.WithdrawUC.Create(c.UserContext(), domain.WithdrawRequest{
+	r := domain.WithdrawRequest{
 		AccountNumber: c.FormValue("account_number"),
 		BankCode:      c.FormValue("bank_code"),
 		Remark:        c.FormValue("remark"),
 		Amount:        amount,
-	})
+	}
+	errs := r.Validate()
+	if len(errs) > 0 {
+		return c.JSON(map[string]interface{}{
+			"code": "ERROR_VALIDATION",
+			"data": errs,
+		})
+	}
+	_, err = a.Usecase.WithdrawUC.Create(c.UserContext(), r)
 	if err != nil {
 		return err
 	}
