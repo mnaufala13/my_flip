@@ -23,16 +23,16 @@ type BigFlipSvcRepository interface {
 	Status(ctx context.Context, transactionId int) (*domain.FlipTransaction, error)
 }
 
-const baseUrl = "https://nextar.flip.id"
-
 type flipper struct {
 	client   *http.Client
 	db       *sql.DB
 	psqlFlip postgres.BigFlipPsqlRepository
+	baseUrl  string
+	Secret   string
 }
 
-func NewFlipper(client *http.Client, db *sql.DB, psqlFlip postgres.BigFlipPsqlRepository) BigFlipSvcRepository {
-	return &flipper{client: client, db: db, psqlFlip: psqlFlip}
+func NewFlipper(client *http.Client, db *sql.DB, psqlFlip postgres.BigFlipPsqlRepository, baseUrl string, secret string) BigFlipSvcRepository {
+	return &flipper{client: client, db: db, psqlFlip: psqlFlip, baseUrl: baseUrl, Secret: secret}
 }
 
 func buildRequest(method, url string, body io.Reader) (*http.Request, error) {
@@ -61,8 +61,8 @@ func (f *flipper) Disburse(ctx context.Context, withdrawalId string, payload dom
 }
 
 // Status to get status bigflip transaction
-func (f *flipper) Status(ctx context.Context, transactionId int) (*domain.FlipTransaction, error) {
-	const endpoint = baseUrl + "/disburse"
+func (f *flipper) Status(_ context.Context, transactionId int) (*domain.FlipTransaction, error) {
+	var endpoint = f.baseUrl + "/disburse"
 
 	flipTrx := &domain.FlipTransaction{}
 
@@ -99,7 +99,7 @@ func (f *flipper) log(ctx context.Context, withdrawalId string, ft domain.FlipTr
 }
 
 func (f flipper) callDisburse(payload domain.DisbursePayload) (*domain.FlipTransaction, error) {
-	const endpoint = baseUrl + "/disburse"
+	var endpoint = f.baseUrl + "/disburse"
 
 	disburse := &domain.FlipTransaction{}
 

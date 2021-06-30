@@ -47,7 +47,7 @@ func NewApp(cfg config.Config) *App {
 	rContainer := &RepositoryContainer{}
 	rContainer.BigflipPsql = bigflipPsql.NewFlipper(db)
 	rContainer.WithdrawPsql = withdrawPsql.NewWithdrawer(db)
-	rContainer.BigflipSvc = bigflipSvc.NewFlipper(hc, db, rContainer.BigflipPsql)
+	rContainer.BigflipSvc = bigflipSvc.NewFlipper(hc, db, rContainer.BigflipPsql, cfg.FlipHost, cfg.FlipSecret)
 
 	ucContainer := &UsecaseContainer{}
 	ucContainer.BigflipUC = bigflipUC.NewBigflipUC(db, rContainer.BigflipSvc, rContainer.BigflipPsql)
