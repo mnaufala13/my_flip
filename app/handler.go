@@ -20,5 +20,19 @@ func (a *App) Withdraw(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return nil
+	return c.Redirect("/history")
+}
+
+func (a *App) Index(c *fiber.Ctx) error {
+	return c.Render("index", fiber.Map{})
+}
+
+func (a *App) History(c *fiber.Ctx) error {
+	histories, err := a.Usecase.WithdrawUC.History(c.UserContext())
+	if err != nil {
+		return err
+	}
+	return c.Render("history", fiber.Map{
+		"histories": histories,
+	})
 }

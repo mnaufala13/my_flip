@@ -8,10 +8,12 @@ import (
 	"flip/models"
 	"flip/withdraw/repository/postgres"
 	"log"
+	"time"
 )
 
 type WithdrawUsecase interface {
 	Create(ctx context.Context, request domain.WithdrawRequest) (*models.Withdrawal, error)
+	History(ctx context.Context) ([]*domain.History, error)
 	SetSuccessDisburse(ctx context.Context, id string) (*models.Withdrawal, error)
 	SyncWithdrawal(ctx context.Context) error
 }
@@ -24,6 +26,32 @@ type withdrawUC struct {
 
 func NewWithdrawUC(db *sql.DB, withdraw postgres.WithdrawRepository, bigflip usecase.BigFlipUsecase) WithdrawUsecase {
 	return &withdrawUC{db: db, withdraw: withdraw, bigflip: bigflip}
+}
+
+func (w withdrawUC) History(ctx context.Context) ([]*domain.History, error) {
+	hh, err := w.withdraw.FetchAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	histories := []*domain.History{}
+	for _, h := range hh {
+		ht := &domain.History{
+			Amount:        h.Amount,
+			BankCode:      h.BankCode,
+			AccountNumber: h.AccountNumber,
+			Remark:        h.Remark,
+		}
+		if h.IsSuccess && h.R.BigflipLog != nil {
+			ht.Status = h.R.BigflipLog.Status
+			ht.Fee = h.R.BigflipLog.Fee
+			ht.Receipt = h.R.BigflipLog.Receipt
+			if !h.R.BigflipLog.TimeServed.Time.IsZero() {
+				ht.TimeServed = h.R.BigflipLog.TimeServed.Time.Format(time.RFC3339)
+			}
+		}
+		histories = append(histories, ht)
+	}
+	return histories, nil
 }
 
 func (w withdrawUC) SyncWithdrawal(ctx context.Context) error {

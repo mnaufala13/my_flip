@@ -8,6 +8,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 type WithdrawRepository interface {
@@ -16,6 +17,7 @@ type WithdrawRepository interface {
 	Get(ctx context.Context, id string) (*models.Withdrawal, error)
 	FetchNotSuccess(ctx context.Context) (models.WithdrawalSlice, error)
 	SetSuccessStatusBulk(ctx context.Context, withdrawal models.WithdrawalSlice) error
+	FetchAll(ctx context.Context) (models.WithdrawalSlice, error)
 }
 
 type withdrawer struct {
@@ -24,6 +26,14 @@ type withdrawer struct {
 
 func NewWithdrawer(db *sql.DB) WithdrawRepository {
 	return &withdrawer{db: db}
+}
+
+func (w *withdrawer) FetchAll(ctx context.Context) (models.WithdrawalSlice, error) {
+	withdrawals, err := models.Withdrawals(qm.Load(qm.Rels(models.WithdrawalRels.BigflipLog))).All(ctx, w.db)
+	if err != nil {
+		return nil, errors.Wrap(err, "error fetch all withdraws")
+	}
+	return withdrawals, nil
 }
 
 func (w *withdrawer) SetSuccessStatusBulk(ctx context.Context, withdrawal models.WithdrawalSlice) error {

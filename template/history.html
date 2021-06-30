@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Market</title>
+    <style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+    </style>
+</head>
+<body>
+<h1>History</h1>
+<table>
+    <tr>
+        <th>Account Number</th>
+        <th>Amount</th>
+        <th>Bank Code</th>
+        <th>Remark</th>
+        <th>Receipt</th>
+        <th>Time Served</th>
+        <th>Fee</th>
+        <th>Status</th>
+    </tr>
+   {{ range .histories }}
+    <tr>
+        <td>{{ .AccountNumber }}</td>
+        <td>{{ .Amount }}</td>
+        <td>{{ .BankCode }}</td>
+        <td>{{ .Remark }}</td>
+        <td>{{ .Receipt }}</td>
+        <td>{{ .TimeServed }}</td>
+        <td>{{ .Fee }}</td>
+        <td>{{ .Status }}</td>
+    </tr>
+   {{ end }}
+</table>
+</body>
+</html>

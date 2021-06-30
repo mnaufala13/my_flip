@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/friendsofgo/errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html"
 	_ "github.com/lib/pq"
 	"github.com/robfig/cron/v3"
 	"log"
@@ -52,7 +53,12 @@ func NewApp(cfg config.Config) *App {
 	ucContainer := &UsecaseContainer{}
 	ucContainer.BigflipUC = bigflipUC.NewBigflipUC(db, rContainer.BigflipSvc, rContainer.BigflipPsql)
 	ucContainer.WithdrawUC = withdrawUC.NewWithdrawUC(db, rContainer.WithdrawPsql, ucContainer.BigflipUC)
-	fiber := fiber.New()
+
+	// Initialize standard Go html template engine
+	engine := html.New("./template", ".html")
+	fiber := fiber.New(fiber.Config{
+		Views: engine,
+	})
 
 	cr := cron.New()
 
