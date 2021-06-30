@@ -6,7 +6,7 @@ import (
 	"flip/biglip/repository/postgres"
 	"flip/biglip/repository/svc"
 	"flip/domain"
-	"flip/models"
+	"log"
 )
 
 type BigFlipUsecase interface {
@@ -39,16 +39,26 @@ func (b *bigflipUC) Sync(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	logsSuccess := models.BigflipLogSlice{}
+	if len(logs) == 0 {
+		return nil
+	}
 	for _, l := range logs {
 		trx, _ := b.svcFlip.Status(ctx, int(l.TransactionID))
-		if trx.Status == domain.WithdrawSuccess {
-			logsSuccess = append(logsSuccess, l)
+		if trx.Status != domain.WithdrawSuccess {
+			continue
 		}
-	}
-	err = b.psqlFlip.SetSuccessBulk(ctx, logsSuccess)
-	if err != nil {
-		return err
+		trxModel, err := domain.FlipTransactionToModel(*trx)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		l.Status = trxModel.Status
+		l.TimeServed = trxModel.TimeServed
+		l.Receipt = trx.Receipt
+		_, err = b.psqlFlip.Update(ctx, *l)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	return nil
 }

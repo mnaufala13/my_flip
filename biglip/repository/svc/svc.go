@@ -10,15 +10,12 @@ import (
 	"flip/models"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/volatiletech/null/v8"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
-	"time"
 )
 
 type BigFlipSvcRepository interface {
@@ -88,53 +85,8 @@ func (f *flipper) Status(ctx context.Context, transactionId int) (*domain.FlipTr
 	return flipTrx, nil
 }
 
-func normalizeDatetime(datetime string) (string, error) {
-	if datetime == "0000-00-00 00:00:00" {
-		return "0001-01-01T00:00:00Z", nil
-	}
-	tt := strings.Split(datetime, " ")
-	if len(tt) != 2 {
-		return "", errors.New("invalid format")
-	}
-	dt := fmt.Sprintf("%sT%s+07:00", tt[0], tt[1])
-	return dt, nil
-}
-
-func flipTransactionToModel(ft domain.FlipTransaction) (*models.BigflipLog, error) {
-	tn, err := normalizeDatetime(ft.TimeServed)
-	if err != nil {
-		return nil, err
-	}
-	t, err := time.Parse(time.RFC3339, tn)
-	if err != nil {
-		return nil, errors.Wrap(err, "error parse time serve")
-	}
-	ttn, err := normalizeDatetime(ft.Timestamp)
-	if err != nil {
-		return nil, err
-	}
-	trxTimestamp, err := time.Parse(time.RFC3339, ttn)
-	if err != nil {
-		return nil, errors.Wrap(err, "error parse transaction timestamp")
-	}
-	lg := &models.BigflipLog{
-		TransactionID:   ft.Id,
-		Amount:          ft.Amount,
-		Status:          ft.Status,
-		TRXTimestamp:    null.TimeFrom(trxTimestamp),
-		BankCode:        ft.BankCode,
-		AccountNumber:   ft.AccountNumber,
-		BeneficiaryName: ft.BeneficiaryName,
-		Remark:          ft.Remark,
-		Receipt:         ft.Receipt,
-		TimeServed:      null.TimeFrom(t),
-		Fee:             ft.Fee,
-	}
-	return lg, nil
-}
-
 func (f *flipper) log(ctx context.Context, withdrawalId string, ft domain.FlipTransaction) (*models.BigflipLog, error) {
-	lg, err := flipTransactionToModel(ft)
+	lg, err := domain.FlipTransactionToModel(ft)
 	if err != nil {
 		return nil, err
 	}
