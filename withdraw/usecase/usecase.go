@@ -21,8 +21,8 @@ type withdrawUC struct {
 	bigflip  usecase.BigFlipUsecase
 }
 
-func NewWithdrawUC(db *sql.DB, withdraw postgres.WithdrawRepository) WithdrawUsecase {
-	return &withdrawUC{db: db, withdraw: withdraw}
+func NewWithdrawUC(db *sql.DB, withdraw postgres.WithdrawRepository, bigflip usecase.BigFlipUsecase) WithdrawUsecase {
+	return &withdrawUC{db: db, withdraw: withdraw, bigflip: bigflip}
 }
 
 func (w withdrawUC) Create(ctx context.Context, request domain.WithdrawRequest) (*models.Withdrawal, error) {

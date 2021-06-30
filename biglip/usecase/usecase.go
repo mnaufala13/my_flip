@@ -10,7 +10,7 @@ import (
 )
 
 type BigFlipUsecase interface {
-	Disburse(ctx context.Context, withdrawalId string, payload domain.DisbursePayload) (*models.BigflipLog, error)
+	Disburse(ctx context.Context, withdrawalId string, payload domain.DisbursePayload) (*domain.FlipTransaction, error)
 	Sync(ctx context.Context) error
 }
 
@@ -25,8 +25,8 @@ func NewBigflipUC(db *sql.DB, svcFlip svc.BigFlipSvcRepository, psqlFlip postgre
 }
 
 // Disburse to call api bigflip
-func (b *bigflipUC) Disburse(ctx context.Context, withdrawalId string, payload domain.DisbursePayload) (*models.BigflipLog, error) {
-	lg, err := b.Disburse(ctx, withdrawalId, payload)
+func (b *bigflipUC) Disburse(ctx context.Context, withdrawalId string, payload domain.DisbursePayload) (*domain.FlipTransaction, error) {
+	lg, err := b.svcFlip.Disburse(ctx, withdrawalId, payload)
 	if err != nil {
 		return nil, err
 	}

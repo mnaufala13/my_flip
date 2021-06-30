@@ -37,7 +37,7 @@ func TestFlipper_callDisburse(t *testing.T) {
 
 func Test_flipper_Status(t *testing.T) {
 	c := &http.Client{}
-	flipper := NewFlipper(c)
+	flipper := flipper{client: c}
 	id := 5535152564
 	flipTrx, err := flipper.Status(context.Background(), id)
 	assert.NoError(t, err)

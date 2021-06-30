@@ -42,15 +42,14 @@ func NewApp(cfg config.Config) *App {
 	}
 
 	hc := &http.Client{}
-	rContainer := &RepositoryContainer{
-		BigflipPsql:  bigflipPsql.NewFlipper(db),
-		BigflipSvc:   bigflipSvc.NewFlipper(hc),
-		WithdrawPsql: withdrawPsql.NewWithdrawer(db),
-	}
-	ucContainer := &UsecaseContainer{
-		BigflipUC:  bigflipUC.NewBigflipUC(db, rContainer.BigflipSvc, rContainer.BigflipPsql),
-		WithdrawUC: withdrawUC.NewWithdrawUC(db, rContainer.WithdrawPsql),
-	}
+	rContainer := &RepositoryContainer{}
+	rContainer.BigflipPsql = bigflipPsql.NewFlipper(db)
+	rContainer.WithdrawPsql = withdrawPsql.NewWithdrawer(db)
+	rContainer.BigflipSvc = bigflipSvc.NewFlipper(hc, db, rContainer.BigflipPsql)
+
+	ucContainer := &UsecaseContainer{}
+	ucContainer.BigflipUC = bigflipUC.NewBigflipUC(db, rContainer.BigflipSvc, rContainer.BigflipPsql)
+	ucContainer.WithdrawUC = withdrawUC.NewWithdrawUC(db, rContainer.WithdrawPsql, ucContainer.BigflipUC)
 	fiber := fiber.New()
 
 	return &App{

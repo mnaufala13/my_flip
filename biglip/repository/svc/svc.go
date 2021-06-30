@@ -33,8 +33,8 @@ type flipper struct {
 	psqlFlip postgres.BigFlipPsqlRepository
 }
 
-func NewFlipper(c *http.Client) BigFlipSvcRepository {
-	return &flipper{client: c}
+func NewFlipper(client *http.Client, db *sql.DB, psqlFlip postgres.BigFlipPsqlRepository) BigFlipSvcRepository {
+	return &flipper{client: client, db: db, psqlFlip: psqlFlip}
 }
 
 func buildRequest(method, url string, body io.Reader) (*http.Request, error) {
