@@ -2,6 +2,7 @@ package svc
 
 import (
 	"context"
+	"flip/config"
 	"flip/domain"
 	"fmt"
 	"github.com/stretchr/testify/assert"
@@ -10,10 +11,11 @@ import (
 )
 
 func Test_buildRequest(t *testing.T) {
-	request, err := buildRequest("GET", baseUrl+"/users", nil)
+	cfg := config.NewConfig()
+	request, err := buildRequest("GET", cfg.FlipHost+"/users", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "GET", request.Method)
-	assert.Equal(t, baseUrl, fmt.Sprintf("%s://%s", request.URL.Scheme, request.Host))
+	assert.Equal(t, cfg.FlipHost, fmt.Sprintf("%s://%s", request.URL.Scheme, request.Host))
 	assert.Equal(t, "/users", request.URL.Path)
 	assert.Equal(t, "application/x-www-form-urlencoded", request.Header.Get("Content-Type"))
 }
@@ -27,7 +29,7 @@ func TestFlipper_callDisburse(t *testing.T) {
 		Amount:        1000,
 		Remark:        "this is remark",
 	}
-	disburse, err := flipper.callDisburse(payload)
+	disburse, err := flipper.callDisburse("", payload)
 	assert.NoError(t, err)
 	assert.EqualValues(t, payload.BankCode, disburse.BankCode)
 	assert.EqualValues(t, payload.AccountNumber, disburse.AccountNumber)

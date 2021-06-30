@@ -9,7 +9,10 @@ import (
 	"flip/domain"
 	"flip/models"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/volatiletech/null/v8"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"io"
 	"io/ioutil"
 	"log"
@@ -47,7 +50,7 @@ func buildRequest(method, url string, body io.Reader) (*http.Request, error) {
 
 // Disburse call the bigflip api and then log the response
 func (f *flipper) Disburse(ctx context.Context, withdrawalId string, payload domain.DisbursePayload) (*domain.FlipTransaction, error) {
-	flipTrx, err := f.callDisburse(payload)
+	flipTrx, err := f.callDisburse(withdrawalId, payload)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +101,7 @@ func (f *flipper) log(ctx context.Context, withdrawalId string, ft domain.FlipTr
 	return lg, nil
 }
 
-func (f flipper) callDisburse(payload domain.DisbursePayload) (*domain.FlipTransaction, error) {
+func (f flipper) callDisburse(withdrawalId string, payload domain.DisbursePayload) (*domain.FlipTransaction, error) {
 	var endpoint = f.baseUrl + "/disburse"
 
 	disburse := &domain.FlipTransaction{}
@@ -121,15 +124,31 @@ func (f flipper) callDisburse(payload domain.DisbursePayload) (*domain.FlipTrans
 	}
 	defer response.Body.Close()
 
+	bodyBytes, _ := ioutil.ReadAll(response.Body)
+	bodyString := string(bodyBytes)
+
+	// log every response
+	go func() {
+		lg := models.BigflipResponse{
+			ID:           uuid.NewString(),
+			URL:          endpoint,
+			Payload:      null.JSONFrom(bodyBytes),
+			WithdrawalID: withdrawalId,
+			HTTPCode:     response.StatusCode,
+		}
+		err := lg.Insert(context.Background(), f.db, boil.Infer())
+		if err != nil {
+			log.Println(err, "error log response bigflip")
+		}
+	}()
+
 	if response.StatusCode >= 400 {
-		bodyBytes, _ := ioutil.ReadAll(response.Body)
-		bodyString := string(bodyBytes)
 		return nil, errors.New(fmt.Sprintf("error disburse: %s", bodyString))
 	}
 
-	err = json.NewDecoder(response.Body).Decode(disburse)
+	err = json.Unmarshal(bodyBytes, disburse)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "error decode disburse response")
 	}
 
 	return disburse, nil
