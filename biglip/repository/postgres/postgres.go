@@ -22,6 +22,10 @@ type flipper struct {
 	db *sql.DB
 }
 
+func NewFlipper(db *sql.DB) BigFlipPsqlRepository {
+	return &flipper{db: db}
+}
+
 func (f *flipper) SetSuccessBulk(ctx context.Context, logs models.BigflipLogSlice) error {
 	_, err := logs.UpdateAll(ctx, f.db, models.M{"status": domain.WithdrawSuccess})
 	if err != nil {

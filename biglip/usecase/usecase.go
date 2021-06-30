@@ -20,6 +20,10 @@ type bigflipUC struct {
 	psqlFlip postgres.BigFlipPsqlRepository
 }
 
+func NewBigflipUC(db *sql.DB, svcFlip svc.BigFlipSvcRepository, psqlFlip postgres.BigFlipPsqlRepository) BigFlipUsecase {
+	return &bigflipUC{db: db, svcFlip: svcFlip, psqlFlip: psqlFlip}
+}
+
 // Disburse to call api bigflip
 func (b *bigflipUC) Disburse(ctx context.Context, withdrawalId string, payload domain.DisbursePayload) (*models.BigflipLog, error) {
 	lg, err := b.Disburse(ctx, withdrawalId, payload)

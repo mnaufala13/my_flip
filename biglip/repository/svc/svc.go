@@ -33,7 +33,7 @@ type flipper struct {
 	psqlFlip postgres.BigFlipPsqlRepository
 }
 
-func NewFlipper(c *http.Client) *flipper {
+func NewFlipper(c *http.Client) BigFlipSvcRepository {
 	return &flipper{client: c}
 }
 

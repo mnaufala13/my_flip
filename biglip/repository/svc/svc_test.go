@@ -18,16 +18,16 @@ func Test_buildRequest(t *testing.T) {
 	assert.Equal(t, "application/x-www-form-urlencoded", request.Header.Get("Content-Type"))
 }
 
-func TestFlipper_Disburse(t *testing.T) {
+func TestFlipper_callDisburse(t *testing.T) {
 	c := &http.Client{}
-	flipper := NewFlipper(c)
+	flipper := flipper{client: c}
 	payload := domain.DisbursePayload{
 		BankCode:      "bni",
 		AccountNumber: "110011212",
 		Amount:        1000,
 		Remark:        "this is remark",
 	}
-	disburse, err := flipper.Disburse(context.Background(), "", payload)
+	disburse, err := flipper.callDisburse(payload)
 	assert.NoError(t, err)
 	assert.EqualValues(t, payload.BankCode, disburse.BankCode)
 	assert.EqualValues(t, payload.AccountNumber, disburse.AccountNumber)
