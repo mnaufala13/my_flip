@@ -29,6 +29,7 @@ type BigflipResponse struct {
 	Payload      null.JSON `boil:"payload" json:"payload,omitempty" toml:"payload" yaml:"payload,omitempty"`
 	WithdrawalID string    `boil:"withdrawal_id" json:"withdrawal_id" toml:"withdrawal_id" yaml:"withdrawal_id"`
 	CreatedAt    time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	HTTPCode     int       `boil:"http_code" json:"http_code" toml:"http_code" yaml:"http_code"`
 
 	R *bigflipResponseR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L bigflipResponseL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -40,12 +41,14 @@ var BigflipResponseColumns = struct {
 	Payload      string
 	WithdrawalID string
 	CreatedAt    string
+	HTTPCode     string
 }{
 	ID:           "id",
 	URL:          "url",
 	Payload:      "payload",
 	WithdrawalID: "withdrawal_id",
 	CreatedAt:    "created_at",
+	HTTPCode:     "http_code",
 }
 
 // Generated where
@@ -100,12 +103,14 @@ var BigflipResponseWhere = struct {
 	Payload      whereHelpernull_JSON
 	WithdrawalID whereHelperstring
 	CreatedAt    whereHelpertime_Time
+	HTTPCode     whereHelperint
 }{
 	ID:           whereHelperstring{field: "\"bigflip_response\".\"id\""},
 	URL:          whereHelperstring{field: "\"bigflip_response\".\"url\""},
 	Payload:      whereHelpernull_JSON{field: "\"bigflip_response\".\"payload\""},
 	WithdrawalID: whereHelperstring{field: "\"bigflip_response\".\"withdrawal_id\""},
 	CreatedAt:    whereHelpertime_Time{field: "\"bigflip_response\".\"created_at\""},
+	HTTPCode:     whereHelperint{field: "\"bigflip_response\".\"http_code\""},
 }
 
 // BigflipResponseRels is where relationship names are stored.
@@ -125,8 +130,8 @@ func (*bigflipResponseR) NewStruct() *bigflipResponseR {
 type bigflipResponseL struct{}
 
 var (
-	bigflipResponseAllColumns            = []string{"id", "url", "payload", "withdrawal_id", "created_at"}
-	bigflipResponseColumnsWithoutDefault = []string{"url", "payload"}
+	bigflipResponseAllColumns            = []string{"id", "url", "payload", "withdrawal_id", "created_at", "http_code"}
+	bigflipResponseColumnsWithoutDefault = []string{"url", "payload", "http_code"}
 	bigflipResponseColumnsWithDefault    = []string{"id", "withdrawal_id", "created_at"}
 	bigflipResponsePrimaryKeyColumns     = []string{"id"}
 )
