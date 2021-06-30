@@ -36,7 +36,7 @@ func (a *App) Withdraw(c *fiber.Ctx) error {
 }
 
 func (a *App) Index(c *fiber.Ctx) error {
-	return c.Render("index", fiber.Map{})
+	return c.Render("template/index", fiber.Map{})
 }
 
 func (a *App) History(c *fiber.Ctx) error {
@@ -44,7 +44,7 @@ func (a *App) History(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return c.Render("history", fiber.Map{
+	return c.Render("template/history", fiber.Map{
 		"histories": histories,
 	})
 }

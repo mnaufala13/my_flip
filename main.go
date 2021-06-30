@@ -1,16 +1,20 @@
 package main
 
 import (
+	"embed"
 	"flip/app"
 	"flip/config"
 )
+
+//go:embed template/index.html template/history.html
+var templates embed.FS
 
 func main() {
 	// setup config
 	cfg := config.NewConfig()
 
 	// create app
-	myMarket := app.NewApp(*cfg)
+	myMarket := app.NewApp(*cfg, templates)
 	defer myMarket.DB.Close()
 
 	app.Route(myMarket)

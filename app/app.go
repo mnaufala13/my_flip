@@ -2,6 +2,7 @@ package app
 
 import (
 	"database/sql"
+	"embed"
 	bigflipPsql "flip/biglip/repository/postgres"
 	bigflipSvc "flip/biglip/repository/svc"
 	bigflipUC "flip/biglip/usecase"
@@ -38,7 +39,7 @@ type UsecaseContainer struct {
 	WithdrawUC withdrawUC.WithdrawUsecase
 }
 
-func NewApp(cfg config.Config) *App {
+func NewApp(cfg config.Config, embedFile embed.FS) *App {
 	db, err := newDB(cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName)
 	if err != nil {
 		panic(err)
@@ -55,7 +56,7 @@ func NewApp(cfg config.Config) *App {
 	ucContainer.WithdrawUC = withdrawUC.NewWithdrawUC(db, rContainer.WithdrawPsql, ucContainer.BigflipUC)
 
 	// Initialize standard Go html template engine
-	engine := html.New("./template", ".html")
+	engine := html.NewFileSystem(http.FS(embedFile), ".html")
 	fiber := fiber.New(fiber.Config{
 		Views: engine,
 	})
