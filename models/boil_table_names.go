@@ -4,9 +4,11 @@
 package models
 
 var TableNames = struct {
-	BigflipLogs string
-	Withdrawals string
+	BigflipLogs     string
+	BigflipResponse string
+	Withdrawals     string
 }{
-	BigflipLogs: "bigflip_logs",
-	Withdrawals: "withdrawals",
+	BigflipLogs:     "bigflip_logs",
+	BigflipResponse: "bigflip_response",
+	Withdrawals:     "withdrawals",
 }
