@@ -13,6 +13,7 @@ import (
 type WithdrawUsecase interface {
 	Create(ctx context.Context, request domain.WithdrawRequest) (*models.Withdrawal, error)
 	SetSuccessDisburse(ctx context.Context, id string) (*models.Withdrawal, error)
+	SyncWithdrawal(ctx context.Context) error
 }
 
 type withdrawUC struct {
@@ -23,6 +24,38 @@ type withdrawUC struct {
 
 func NewWithdrawUC(db *sql.DB, withdraw postgres.WithdrawRepository, bigflip usecase.BigFlipUsecase) WithdrawUsecase {
 	return &withdrawUC{db: db, withdraw: withdraw, bigflip: bigflip}
+}
+
+func (w withdrawUC) SyncWithdrawal(ctx context.Context) error {
+	withdrawals, err := w.withdraw.FetchNotSuccess(ctx)
+	if err != nil {
+		return err
+	}
+	if len(withdrawals) == 0 {
+		return nil
+	}
+	successWithdrawals := models.WithdrawalSlice{}
+	for _, wm := range withdrawals {
+		_, err := w.bigflip.Disburse(ctx, wm.ID, domain.DisbursePayload{
+			BankCode:      wm.BankCode,
+			AccountNumber: wm.AccountNumber,
+			Amount:        wm.Amount,
+			Remark:        wm.Remark,
+		})
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		successWithdrawals = append(successWithdrawals, wm)
+	}
+	if len(successWithdrawals) == 0 {
+		return nil
+	}
+	err = w.withdraw.SetSuccessStatusBulk(ctx, successWithdrawals)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (w withdrawUC) Create(ctx context.Context, request domain.WithdrawRequest) (*models.Withdrawal, error) {

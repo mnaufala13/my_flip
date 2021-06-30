@@ -6,9 +6,19 @@ import (
 )
 
 func main() {
+	// setup config
 	cfg := config.NewConfig()
+
+	// create app
 	myMarket := app.NewApp(*cfg)
-	app.Route(myMarket)
-	myMarket.Fiber.Listen(":8000")
 	defer myMarket.DB.Close()
+
+	app.Route(myMarket)
+	app.Cron(myMarket)
+
+	// run cron in another goroutine
+	myMarket.Cron.Start()
+
+	// run fiber
+	myMarket.Fiber.Listen(":8000")
 }

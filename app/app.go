@@ -12,6 +12,7 @@ import (
 	"github.com/friendsofgo/errors"
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/lib/pq"
+	"github.com/robfig/cron/v3"
 	"log"
 	"net/http"
 )
@@ -20,6 +21,7 @@ type App struct {
 	DB         *sql.DB
 	Fiber      *fiber.App
 	HttpClient *http.Client
+	Cron       *cron.Cron
 	Repository *RepositoryContainer
 	Usecase    *UsecaseContainer
 }
@@ -52,10 +54,13 @@ func NewApp(cfg config.Config) *App {
 	ucContainer.WithdrawUC = withdrawUC.NewWithdrawUC(db, rContainer.WithdrawPsql, ucContainer.BigflipUC)
 	fiber := fiber.New()
 
+	cr := cron.New()
+
 	return &App{
 		DB:         db,
 		HttpClient: hc,
 		Fiber:      fiber,
+		Cron:       cr,
 		Repository: rContainer,
 		Usecase:    ucContainer,
 	}
