@@ -1,12 +1,13 @@
 include flip.env
 export $(shell sed 's/=.*//' flip.env)
 
-	#docker-compose run --rm --entrypoint="./appmain withdraw --account_number=444444 --amount=5555 --remark=hii --bank_code=bca" app
 
 build:
 	docker build . -t my_market
-start:
-	docker-compose up
+start-app:
+	docker-compose up app
+start-db:
+	docker-compose up postgres
 stop:
 	docker-compose stop
 clean:
@@ -31,3 +32,4 @@ heroku-deploy: heroku-config
 	heroku container:login
 	heroku container:push web
 	heroku container:release web
+	heroku ps:scale web=1
