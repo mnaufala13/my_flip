@@ -1,3 +1,4 @@
+# Withdraw Apps
 ## Demo
 https://bearded-minister-51298.herokuapp.com
 ## Requirement
@@ -8,8 +9,9 @@ https://bearded-minister-51298.herokuapp.com
 
 ## Konfigurasi
 Konfigurasi dapat dilakukkan dengan mengubah nilai yang ada di file **flip.env** . Berikut penjelasan tiap fieldnya.
+
 |field|description  |
-|--|--|
+|---|---|
 | DBHost | alamat database server |
 | DBPort | port database server yang digunakan |
 | DBUser | username database server |
@@ -38,8 +40,8 @@ Installasi ini ditujukkan jika ingin aplikasi dijalankan di platform heroku. Ber
 5. Jalankan proses inisialisasi database untuk membuat tabel-tabel yang diperlukan.
 
 Setelah proses pra installasi diatas, berikut pentunjuk untuk proses installasi:
-6.  Jalankan perintah `make heroku-deploy`. Perintah tersebut akan menjalankan proses deployment ke heroku.
-7. Jika proses deployment sudah selesai, jalankan perintah `heroku open` untuk mengakses aplikasi.
+1.  Jalankan perintah `make heroku-deploy`. Perintah tersebut akan menjalankan proses deployment ke heroku.
+2. Jika proses deployment sudah selesai, jalankan perintah `heroku open` untuk mengakses aplikasi.
 
 ## Withdraw
 Proses withdraw bisa dilakukkan dengan mengakses aplikasi melalui browser. Selain itu, proses withdraw juga dapat dilakukan dengan menggunakan command line melalui terminal. Berikut contoh perintah untuk melakukan withdraw menggunakan command line.
