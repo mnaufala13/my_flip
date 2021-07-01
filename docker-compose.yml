@@ -5,7 +5,7 @@ services:
       context: .
     env_file:
       - flip.env
-    command: bash -c "sleep && ./appmain"
+    entrypoint: "./appmain service"
     ports:
       - 8000:8000
     depends_on:

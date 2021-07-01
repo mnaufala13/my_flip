@@ -36,4 +36,4 @@ COPY --from=builder /src/appmain /appmain
 
 EXPOSE 8000
 
-ENTRYPOINT ["/appmain"]
+ENTRYPOINT ["/appmain service"]
