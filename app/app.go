@@ -40,7 +40,7 @@ type UsecaseContainer struct {
 }
 
 func NewApp(cfg config.Config, embedFile embed.FS) *App {
-	db, err := newDB(cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName)
+	db, err := newDB(cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBSsl)
 	if err != nil {
 		panic(err)
 	}
@@ -73,13 +73,14 @@ func NewApp(cfg config.Config, embedFile embed.FS) *App {
 	}
 }
 
-func newDB(host, port, user, password, dbname string) (*sql.DB, error) {
-	conn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+func newDB(host, port, user, password, dbname, ssl string) (*sql.DB, error) {
+	conn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		host,
 		port,
 		user,
 		password,
-		dbname)
+		dbname,
+		ssl)
 	// open database
 	db, err := sql.Open("postgres", conn)
 	if err != nil {

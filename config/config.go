@@ -11,6 +11,8 @@ type Config struct {
 	DBUser     string `env:"DBUser,notEmpty"`
 	DBPassword string `env:"DBPassword,notEmpty"`
 	DBName     string `env:"DBName" envDefault:"my_market"`
+	DBSsl      string `env:"DBSsl" envDefault:"disable"`
+	Port       string `env:"PORT" envDefault:"8000"`
 	FlipHost   string `env:"FlipHost" envDefault:"https://nextar.flip.id"`
 	FlipSecret string `env:"FlipSecret,notEmpty"`
 }

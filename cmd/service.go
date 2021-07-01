@@ -29,7 +29,7 @@ var serviceCmd = &cobra.Command{
 		myMarket.Cron.Start()
 
 		// run fiber
-		myMarket.Fiber.Listen(":8000")
+		myMarket.Fiber.Listen(":" + cfg.Port)
 	},
 }
 
